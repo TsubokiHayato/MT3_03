@@ -35,6 +35,14 @@ struct  Plane
 	float distance;
 };
 
+
+struct  Segment
+{
+	Vector3 origin;//始点
+	Vector3 diff;//終点への差分ベクトル
+};
+
+
 bool IsCollision(const Sphere& sphere, const Plane& plane) {
 	
 	float k = (plane.normal.x * sphere.center.x + plane.normal.y * sphere.center.y + plane.normal.z * sphere.center.z) - plane.distance;
