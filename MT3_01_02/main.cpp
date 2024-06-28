@@ -35,52 +35,75 @@ struct  Plane
 	float distance;
 };
 
+//直線
+struct  Line
+{
+	Vector3 origin;//始点
+	Vector3 diff;//終点への差分ベクトル
+};
 
+//半直線
+struct  Ray
+{
+	Vector3 origin;//始点
+	Vector3 diff;//終点への差分ベクトル
+};
+
+//線分
 struct  Segment
 {
 	Vector3 origin;//始点
 	Vector3 diff;//終点への差分ベクトル
 };
 
-
-bool IsCollision(const Segment& segment, const Plane& plane) {
-	float dot = Dot(plane.normal, segment.diff);
+//直線と平面の当たり判定
+bool IsCollision(const Line& line, const Plane& plane) {
+	float dot = Dot(plane.normal, line.diff);
 
 	if (dot == 0.0f) {
 		return false;
 	}
 
-	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
 
 	if (t == 1) {
-		return false;
+		return true;
 	}
 
 	if (t == 2) {
-		return false;
+		return true;
 	}
+
+	return false;
+
+
 }
 
 
-bool IsCollision(const Segment& segment, const Plane& plane) {
-	float dot = Dot(plane.normal, segment.diff);
+//半直線と平面の当たり判定
+bool IsCollision(const Ray& ray, const Plane& plane) {
+	float dot = Dot(plane.normal, ray.diff);
 
 	if (dot == 0.0f) {
 		return false;
 	}
 
-	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+	float t = (plane.distance - Dot(ray.origin, plane.normal)) / dot;
 
 	if (t == 1) {
 		return false;
 	}
 
 	if (t == 2) {
-		return false;
+		return true;
 	}
+
+	return false;
+
 }
 
 
+//線分と平面の当たり判定
 bool IsCollision(const Segment& segment, const Plane& plane) {
 	float dot = Dot(plane.normal, segment.diff);
 
@@ -97,6 +120,8 @@ bool IsCollision(const Segment& segment, const Plane& plane) {
 	if (t == 2) {
 		return false;
 	}
+
+	return false
 }
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
