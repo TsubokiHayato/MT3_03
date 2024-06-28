@@ -43,18 +43,62 @@ struct  Segment
 };
 
 
-bool IsCollision(const Sphere& sphere, const Plane& plane) {
-	
-	float k = (plane.normal.x * sphere.center.x + plane.normal.y * sphere.center.y + plane.normal.z * sphere.center.z) - plane.distance;
-	k = fabs(k);
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	float dot = Dot(plane.normal, segment.diff);
 
-	if (k <= sphere.radius) {
-		return true;
+	if (dot == 0.0f) {
+		return false;
 	}
-	else {
+
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+
+	if (t == 1) {
+		return false;
+	}
+
+	if (t == 2) {
 		return false;
 	}
 }
+
+
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	float dot = Dot(plane.normal, segment.diff);
+
+	if (dot == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+
+	if (t == 1) {
+		return false;
+	}
+
+	if (t == 2) {
+		return false;
+	}
+}
+
+
+bool IsCollision(const Segment& segment, const Plane& plane) {
+	float dot = Dot(plane.normal, segment.diff);
+
+	if (dot == 0.0f) {
+		return false;
+	}
+
+	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
+
+	if (t == 1) {
+		return false;
+	}
+
+	if (t == 2) {
+		return false;
+	}
+}
+
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
 
 	const float kGridHalfWidth = 2.0f;//Gridの半分の幅
