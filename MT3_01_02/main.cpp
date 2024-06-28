@@ -169,6 +169,27 @@ void DrawSphere(Sphere sphere, const Matrix4x4& viewProjectionMatrix, const Matr
 
 
 }
+
+
+Vector3 Project(const Vector3& v1, const Vector3& v2) {
+
+	// v1 を v2 に正射影する
+	float dotProduct = v1.dot(v2);
+	float v2LengthSquared = v2.dot(v2);
+	return v2.scale(dotProduct / v2LengthSquared);
+
+}
+
+Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
+	Vector3 segmentVec = segment.diff;
+	Vector3 pointToOrigin = Subtract(point, segment.origin);
+	float t = Dot(pointToOrigin, segmentVec) / Dot(segmentVec, segmentVec);
+
+	Vector3 a = Add(segment.origin, Multiply(t, segmentVec));
+
+	return a;
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
