@@ -66,6 +66,13 @@ bool IsCollision(const Line& line, const Plane& plane) {
 
 	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
 
+	if (t > 0) {
+		return true;
+	}
+	if (t < 1) {
+		return true;
+	}
+
 	if (t == -1.0f) {
 		return true;
 	}
@@ -89,6 +96,13 @@ bool IsCollision(const Ray& ray, const Plane& plane) {
 	}
 
 	float t = (plane.distance - Dot(ray.origin, plane.normal)) / dot;
+
+	if (t > 0) {
+		return true;
+	}
+	if (t < 1) {
+		return true;
+	}
 
 	if (t == -1.0f) {
 		return false;
@@ -297,8 +311,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	plane.distance={};
 	plane.normal = { 0.0f,1.0f,0.0f };
 
+	Ray ray;
 
-	bool isCollision;
+	bool isCollision{};
 
 	unsigned int color = 0xffffffff;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -321,7 +336,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
-		
+		isCollision= IsCollision(,plane)
 
 		if (isCollision) {
 			color = 0x00ffffff;
