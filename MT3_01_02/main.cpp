@@ -311,7 +311,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	plane.distance={};
 	plane.normal = { 0.0f,1.0f,0.0f };
 
-	Ray ray;
+	Ray ray{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
 
 	bool isCollision{};
 
@@ -369,7 +369,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
 		//
-
+		
 		
 
 		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, color);
