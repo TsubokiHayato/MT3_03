@@ -66,11 +66,11 @@ bool IsCollision(const Line& line, const Plane& plane) {
 
 	float t = (plane.distance - Dot(line.origin, plane.normal)) / dot;
 
-	if (t == 1) {
+	if (t == -1.0f) {
 		return true;
 	}
 
-	if (t == 2) {
+	if (t == 2.0f) {
 		return true;
 	}
 
@@ -90,11 +90,11 @@ bool IsCollision(const Ray& ray, const Plane& plane) {
 
 	float t = (plane.distance - Dot(ray.origin, plane.normal)) / dot;
 
-	if (t == 1) {
+	if (t == -1.0f) {
 		return false;
 	}
 
-	if (t == 2) {
+	if (t == 2.0f) {
 		return true;
 	}
 
@@ -113,15 +113,22 @@ bool IsCollision(const Segment& segment, const Plane& plane) {
 
 	float t = (plane.distance - Dot(segment.origin, plane.normal)) / dot;
 
-	if (t == 1) {
+	if (t > 0) {
+		return true;
+	}
+	if (t < 1) {
+		return true;
+	}
+
+	if (t == -1.0f) {
 		return false;
 	}
 
-	if (t == 2) {
+	if (t == 2.0f) {
 		return false;
 	}
 
-	return false
+	return false;
 }
 
 void DrawGrid(const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix) {
@@ -284,9 +291,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	Sphere sphere;
-	sphere.center = {};
-	sphere.radius = 1.0f;
+	
 
 	Plane plane;
 	plane.distance={};
@@ -316,7 +321,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
-		isCollision = IsCollision(sphere, plane);
+		
 
 		if (isCollision) {
 			color = 0x00ffffff;
@@ -330,7 +335,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
 
 
-		ImGui::DragFloat3("sphere.pos", &sphere.center.x, 0.01f, -10.0f, 10.0f);
+		
 		ImGui::DragFloat3("Plane.normal", &plane.normal.x, 0.01f);
 		ImGui::DragFloat("Plane.distance", &plane.distance, 0.01f);
 
@@ -350,7 +355,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		//
 
-		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, color);
+		
 
 		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, color);
 		///
