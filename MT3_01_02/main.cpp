@@ -69,7 +69,7 @@ bool IsCollision(const Line& line, const Plane& plane) {
 	if (t >= 0 && t <= 1) {
 		return true;
 	}
-	
+
 	if (t == -1.0f) {
 		return true;
 	}
@@ -278,6 +278,73 @@ Vector3 ClosestPoint(const Vector3& point, const Segment& segment) {
 
 	return a;
 }
+struct Triangle {
+	Vector3 vertices[3];
+};
+
+bool IsCollision(const Triangle& triangle, const Segment& segment) {
+
+	Vector3 edge[2];
+	edge[0] = Subtract(triangle.vertices[1], triangle.vertices[0]);
+	edge[1] = Subtract(triangle.vertices[2], triangle.vertices[0]);
+
+
+	Vector3 normal = Cross(edge[0], edge[1]);
+	normal = Normalize(normal);
+
+	Vector3 dir = segment.diff;
+	dir = Normalize(dir);
+
+	Vector3 diff = Subtract(triangle.vertices[0], segment.origin);
+
+	float dotND = Dot(normal, dir);
+
+	if (fabs(dotND) < 1e-6f) {
+		// Segment is parallel to the triangle plane
+		return false;
+	}
+
+	float t = Dot(normal, diff) / dotND;
+	if (t < 0.0f || t > 1.0f) {
+		// Segment does not intersect the triangle plane within the segment range
+		return false;
+	}
+
+
+	Vector3 intersection = {
+	   segment.origin.x + t * dir.x,
+	   segment.origin.y + t * dir.y,
+	   segment.origin.z + t * dir.z
+	};
+
+
+	Vector3 cross01 = Cross(Subtract(triangle.vertices[1], triangle.vertices[0]), Subtract(intersection, triangle.vertices[0]));
+	Vector3 cross12 = Cross(Subtract(triangle.vertices[2], triangle.vertices[1]), Subtract(intersection, triangle.vertices[1]));
+	Vector3 cross20 = Cross(Subtract(triangle.vertices[0], triangle.vertices[2]), Subtract(intersection, triangle.vertices[2]));
+
+
+	if (Dot(cross01, normal) >= 0.0f &&
+		Dot(cross12, normal) >= 0.0f &&
+		Dot(cross20, normal) >= 0.0f) 
+	{
+		return true;
+
+	}
+	return false;
+}
+void DrawTriangle(const Triangle triangle, const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+
+
+	Vector3 A, B, C = {};
+	A = Transform(triangle.vertices[0], Multiply(viewProjectionMatrix, viewportMatrix));
+	B = Transform(triangle.vertices[1], Multiply(viewProjectionMatrix, viewportMatrix));
+	C = Transform(triangle.vertices[2], Multiply(viewProjectionMatrix, viewportMatrix));
+
+	Novice::DrawLine((int)A.x, (int)A.y, (int)B.x, (int)B.y, color);
+	Novice::DrawLine((int)B.x, (int)B.y, (int)C.x, (int)C.y, color);
+	Novice::DrawLine((int)C.x, (int)C.y, (int)A.x, (int)A.y, color);
+
+}
 
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
@@ -297,12 +364,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
 
+	Triangle triangle{};
+	triangle.vertices[0] = { 0.0f,1.0f,0.0f };
+	triangle.vertices[1] = { 1.0f,0.0f,0.0f };
+	triangle.vertices[2] = { -1.0f,0.0f,0.0f };
 
-	Plane plane;
-	plane.distance = {};
-	plane.normal = { 0.0f,1.0f,0.0f };
 
-	Ray ray{ {-2.0f,-1.0f,0.0f},{3.0f,2.0f,2.0f} };
+	Segment segment{ {0.0f,0.0f,0.0f},{3.0f,2.0f,2.0f} };
 
 	bool isCollision{};
 
@@ -327,7 +395,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
-		isCollision = IsCollision(ray, plane);
+		isCollision = IsCollision(triangle, segment);
 
 		if (isCollision) {
 			color = 0x00ffffff;
@@ -336,22 +404,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			color = 0xffffffff;
 		}
 
-		Vector3 start = Transform(Transform(ray.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(ray.origin, ray.diff), worldViewProjectionMatrix), viewportMatrix);
+		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
+		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), worldViewProjectionMatrix), viewportMatrix);
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
 
+		ImGui::DragFloat3("triangle_Top", &triangle.vertices[0].x, 0.01f);
+		ImGui::DragFloat3("triangle_Left", &triangle.vertices[1].x, 0.01f);
+		ImGui::DragFloat3("triangle_Right", &triangle.vertices[2].x, 0.01f);
 
+		ImGui::DragFloat3("ray.origin", &segment.origin.x, 0.01f);
+		ImGui::DragFloat3("ray.diff", &segment.diff.x, 0.01f);
 
-		ImGui::DragFloat3("Plane.normal", &plane.normal.x, 0.01f);
-		ImGui::DragFloat("Plane.distance", &plane.distance, 0.01f);
-
-		ImGui::DragFloat3("ray.origin", &ray.origin.x, 0.01f);
-		ImGui::DragFloat3("ray.diff", &ray.diff.x, 0.01f);
-
-		plane.normal = Normalize(plane.normal);
 
 
 		///
@@ -367,10 +433,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
 		//
+		DrawTriangle(triangle, worldViewProjectionMatrix, viewportMatrix, color);
 
 
 
-		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, color);
+
 		///
 		/// ↑描画処理ここまで
 		///
