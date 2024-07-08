@@ -545,6 +545,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
+	Vector3 rotate = {};
+	Vector3 translate{};
 
 	Vector3 translates[3] = {
 
@@ -574,16 +576,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Sphere sphere[3];
 
-	sphere[0].center={};
+	sphere[0].center = translates[0];
 	sphere[0].radius = 0.1f;
 
-	sphere[1].center = {};
+	sphere[1].center = translates[1];
 	sphere[1].radius = 0.1f;
 
-	sphere[2].center = {};
+	sphere[2].center = translates[2];
 	sphere[2].radius = 0.1f;
-
-
 
 	unsigned int color = 0xffffffff;
 
@@ -599,44 +599,57 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
-
-		 // 更新
-		Matrix4x4 worldMatrix;
+		
+		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
 		
 
 		Matrix4x4 shoulderWorldMatrix= MakeAffineMatrix(scales[0], rotates[0], translates[0]);
-		Matrix4x4 elbowWorldMatrix= MakeAffineMatrix(scales[1], rotates[1], translates[1]);
-		Matrix4x4 handWorldMatrix= MakeAffineMatrix(scales[2], rotates[2], translates[2]);
+
+		Matrix4x4 elbowWorldMatrix= MakeAffineMatrix(Multiply(scales[0], scales[1]),Multiply(rotates[0], rotates[1]),Multiply(translates[0], translates[1]));
+
+		Matrix4x4 handWorldMatrix=
+			MakeAffineMatrix(Multiply(Multiply(scales[0], scales[1]),scales[2]),
+			Multiply(Multiply(rotates[0], rotates[1]), rotates[2]),
+			Multiply(Multiply(translates[0], translates[1]), translates[2]));
 
 
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
+
 		Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
 
 
 		Matrix4x4 shoulderViewProjectionMatrix = Multiply(shoulderWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
+
 		Matrix4x4 elbowViewProjectionMatrix = Multiply(elbowWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
+
 		Matrix4x4 handViewProjectionMatrix = Multiply(handWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
 
 
-		Matrix4x4 worldViewProjectionMatrix;
+		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		
 
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
 
-		sphere[0].center=translates[0];
-		sphere[0].radius = 0.1f;
-
-		sphere[1].center= translates[1];
-		sphere[1].radius = 0.1f;
-
-		sphere[2].center =translates[2];
-		sphere[2].radius = 0.1f;
 
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
+
+
+		ImGui::DragFloat3("translates[0]", &translates[0].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("translates[1]", &translates[1].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("translates[2]", &translates[2].x, 0.01f, -10.0f, 10.0f);
+
+		ImGui::DragFloat3("rotates[0]", &rotates[0].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("rotates[1]", &rotates[1].x, 0.01f, -10.0f, 10.0f); 
+		ImGui::DragFloat3("rotates[2]", &rotates[2].x, 0.01f, -10.0f, 10.0f);
+
+		ImGui::DragFloat3("scales[0]", &scales[0].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("scales[1]", &scales[1].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("scales[2]", &scales[2].x, 0.01f, -10.0f, 10.0f);
+
 
 		///
 		/// ↑更新処理ここまで
@@ -649,12 +662,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
 
-		DrawSphere(sphere[0], shoulderViewProjectionMatrix, viewportMatrix, color);
-		DrawSphere(sphere[1], elbowViewProjectionMatrix, viewportMatrix, color);
-		DrawSphere(sphere[2], handViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[0], shoulderViewProjectionMatrix, viewportMatrix, RED);
+		DrawSphere(sphere[1], elbowViewProjectionMatrix, viewportMatrix, GREEN);
+		DrawSphere(sphere[2], handViewProjectionMatrix, viewportMatrix, BLUE);
 
-		Novice::DrawLine((int)translates[0].x, (int)translates[0].y, (int)translates[1].x, (int)translates[1].y, color);
-		Novice::DrawLine((int)translates[1].x, (int)translates[1].y, (int)translates[2].x, (int)translates[2].y, color);
+		Novice::DrawLine((int)sphere[0].center.x, (int)sphere[0].center.y, (int)sphere[1].center.x, (int)sphere[1].center.y, color);
+		Novice::DrawLine((int)sphere[1].center.x, (int)sphere[1].center.y, (int)sphere[2].center.x, (int)sphere[2].center.y, color);
 
 
 

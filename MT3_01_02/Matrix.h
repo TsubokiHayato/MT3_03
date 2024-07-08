@@ -122,6 +122,39 @@ Matrix4x4 MakeAffineMatrix(const Vector3& scale, const Vector3& rotate, const Ve
 
 	return result;
 }
+
+Matrix4x4 MakeAffineMatrixes(const Vector3& scale, const Vector3& rotate, const Vector3& translate) {
+
+
+	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
+	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
+	Matrix4x4 rotateZMatrix = MakeRotateZMatrix(rotate.z);
+	Matrix4x4 rotateXYZMatrix = Multiply(rotateXMatrix, Multiply(rotateYMatrix, rotateZMatrix));
+
+	Matrix4x4 result = {};
+
+	result.m[0][0] = scale.x * rotateXYZMatrix.m[0][0];
+	result.m[0][1] = scale.x * rotateXYZMatrix.m[0][1];
+	result.m[0][2] = scale.x * rotateXYZMatrix.m[0][2];
+
+	result.m[1][0] = scale.y * rotateXYZMatrix.m[1][0];
+	result.m[1][1] = scale.y * rotateXYZMatrix.m[1][1];
+	result.m[1][2] = scale.y * rotateXYZMatrix.m[1][2];
+
+	result.m[2][0] = scale.z * rotateXYZMatrix.m[2][0];
+	result.m[2][1] = scale.z * rotateXYZMatrix.m[2][1];
+	result.m[2][2] = scale.z * rotateXYZMatrix.m[2][2];
+
+
+	result.m[3][0] = translate.x;
+	result.m[3][1] = translate.y;
+	result.m[3][2] = translate.z;
+	result.m[3][3] = 1;
+
+	return result;
+}
+
+
 //透視投影行列
 Matrix4x4 MakePerspectiveMatrix(float fovY, float aspectRatio, float nearClip, float farClip) {
 	Matrix4x4 result = {};
