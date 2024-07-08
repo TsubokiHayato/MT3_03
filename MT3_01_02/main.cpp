@@ -507,6 +507,7 @@ Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t)
 	return Lerp(p0p1, p1p2, t);
 }
 
+
 // Draw a Bezier curve defined by three control points p0, p1, p2
 void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
 	const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
@@ -526,7 +527,7 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 		bazierLine[1] = Transform(bezier1, Multiply(viewProjectionMatrix, viewportMatrix));
 
 
-		Novice::ScreenPrintf(0, 0, "bazier0.x=%d", bazierLine[0].x);
+		
 
 		Novice::DrawLine((int)bazierLine[0].x, (int)bazierLine[0].y, (int)bazierLine[1].x, (int)bazierLine[1].y, color);
 
@@ -582,6 +583,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		sphere[0].center = controlPoints[0];
+		sphere[0].radius = 0.01f;
+
+		sphere[1].center = controlPoints[1];
+		sphere[1].radius = 0.01f;
+
+		sphere[2].center = controlPoints[2];
+		sphere[2].radius = 0.01f;
+
 		 // 更新
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
@@ -595,9 +605,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
 
-		controlPoints[0] = Transform(controlPoints[0], worldViewProjectionMatrix);
-		controlPoints[1] = Transform(controlPoints[1], worldViewProjectionMatrix);
-		controlPoints[2] = Transform(controlPoints[2], worldViewProjectionMatrix);
+		ImGui::DragFloat3("controlPoints[0]", &controlPoints[0].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("controlPoints[1]", &controlPoints[1].x, 0.01f, -10.0f, 10.0f);
+		ImGui::DragFloat3("controlPoints[2]", &controlPoints[2].x, 0.01f, -10.0f, 10.0f);
 
 		///
 		/// ↑更新処理ここまで
