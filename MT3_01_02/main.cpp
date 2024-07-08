@@ -631,6 +631,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
 
+		Vector3 start[2] = {
+			{Transform(Transform(sphere[0].center, worldViewProjectionMatrix), viewportMatrix)},
+			{Transform(Transform(sphere[1].center, worldViewProjectionMatrix), viewportMatrix)}
+		};
+		Vector3 end[2] = {
+			{Transform(Transform(sphere[1].center, worldViewProjectionMatrix), viewportMatrix)},
+			{Transform(Transform(sphere[2].center, worldViewProjectionMatrix), viewportMatrix)}
+		};
+
 
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f, -10.0f, 10.0f);
