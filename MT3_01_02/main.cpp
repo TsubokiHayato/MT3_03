@@ -64,6 +64,12 @@ struct  Segment
 	Vector3 diff;//終点への差分ベクトル
 };
 
+struct OBB {
+	Vector3 center;
+	Vector3 orientations[3];
+	Vector3 size;
+};
+
 //直線と平面の当たり判定
 bool IsCollision(const Line& line, const Plane& plane) {
 	float dot = Dot(plane.normal, line.diff);
