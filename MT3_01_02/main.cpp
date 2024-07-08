@@ -612,14 +612,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-		sphere[0].center = translates[0];
-		sphere[0].radius = 0.1f;
-
-		sphere[1].center = translates[1];
-		sphere[1].radius = 0.1f;
-
-		sphere[2].center = translates[2];
-		sphere[2].radius = 0.1f;
+		
 
 		shoulderTranslate = translates[0];
 		elbowTranslate = translates[1];
@@ -639,9 +632,9 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		Matrix4x4 shoulderWorldMatrix = MakeAffineMatrix(shoulderScale, shoulderRotate, shoulderTranslate);
 
-		Matrix4x4 elbowWorldMatrix = Multiply(shoulderWorldMatrix, MakeAffineMatrix(elbowScale, elbowRotate, elbowTranslate));
+		Matrix4x4 elbowWorldMatrix = Multiply( MakeAffineMatrix(elbowScale, elbowRotate, elbowTranslate), shoulderWorldMatrix);
 
-		Matrix4x4 handWorldMatrix = Multiply(elbowWorldMatrix, MakeAffineMatrix(handScale, handRotate, handTranslate));
+		Matrix4x4 handWorldMatrix = Multiply( MakeAffineMatrix(handScale, handRotate, handTranslate), elbowWorldMatrix);
 
 
 
@@ -671,6 +664,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 			{Transform(Transform(sphere[1].center, elbowViewProjectionMatrix), viewportMatrix)},
 			{Transform(Transform(sphere[2].center, handViewProjectionMatrix), viewportMatrix)}
 		};
+
+
+		sphere[0].center = shoulderTranslate;
+		sphere[0].radius = 0.1f;
+
+		sphere[1].center = elbowTranslate;
+		sphere[1].radius = 0.1f;
+
+		sphere[2].center = handTranslate;
+		sphere[2].radius = 0.1f;
 
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f);
