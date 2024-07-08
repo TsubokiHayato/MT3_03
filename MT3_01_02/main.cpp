@@ -545,8 +545,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Vector3 rotate = {};
-	Vector3 translate{};
+	
 
 
 	Vector3 cameraPosition{ 0.0f,-0.0f,-6.49f };
@@ -557,10 +556,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Vector3 a(0.2f, 1.0f, 0.0f);
 	Vector3 b(2.4f, 3.1f, 1.2f);
-	Vector3 c = a - b;
-	Vector3 d = a * 2.4f;
-	Vector3 e = a * 1.43f - 0.8f;
-	Vector3 e = a * 1.43f - 0.8f;
+	Vector3 c = a + b;
+	Vector3 d = a - b;
+	Vector3 e = a * 2.4f;
+	Vector3 rotate{ 0.4f,1.43f,-0.8f };
+
 
 	Matrix4x4 rotateXMatrix = MakeRotateXMatrix(rotate.x);
 	Matrix4x4 rotateYMatrix = MakeRotateYMatrix(rotate.y);
@@ -598,29 +598,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-
-
-		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
-
-
-
-		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
-
-		Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
-
-
-		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
-
-
-		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
-
-
-
-		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f);
-		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f);
-		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f);
-
-
 		///
 		/// ↑更新処理ここまで
 		///
@@ -629,7 +606,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
 
 		///
