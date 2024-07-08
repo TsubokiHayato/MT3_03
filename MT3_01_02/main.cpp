@@ -491,6 +491,47 @@ bool IsCollision(const AABB& aabb, const Segment& segment) {
 }
 
 
+// Linear interpolation between two vectors v1 and v2
+Vector3 Lerp(const Vector3& v1, const Vector3& v2, float t) {
+	return v1 + (v2 - v1) * t;
+}
+
+
+Vector3 Bezier(const Vector3& p0, const Vector3& p1, const Vector3& p2, float t) {
+	Vector3 p0p1 =
+		Lerp(p0, p1, t);
+	Vector3 p1p2 =
+		Lerp(p1, p2, t);
+
+
+	return Lerp(p0p1, p1p2, t);
+}
+
+// Draw a Bezier curve defined by three control points p0, p1, p2
+void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, const Vector3& controlPoint2,
+	const Matrix4x4& viewProjectionMatrix, const Matrix4x4& viewportMatrix, uint32_t color) {
+
+	int split = 32;
+	for (int i = 0; i < split; i++) {
+		float t0 = i / (float)split;
+		float t1 = (i + 1) / (float)split;
+
+
+
+		Vector3 bezier0 = Bezier(controlPoint0, controlPoint1, controlPoint2, t0);
+		Vector3 bezier1 = Bezier(controlPoint0, controlPoint1, controlPoint2, t1);
+
+		Vector3 bazierLine[2];
+		bazierLine[0] = Transform(bezier0, Multiply(viewProjectionMatrix, viewportMatrix));
+		bazierLine[1] = Transform(bezier1, Multiply(viewProjectionMatrix, viewportMatrix));
+
+
+		Novice::ScreenPrintf(0, 0, "bazier0.x=%d", bazierLine[0].x);
+
+		Novice::DrawLine((int)bazierLine[0].x, (int)bazierLine[0].y, (int)bazierLine[1].x, (int)bazierLine[1].y, color);
+
+	}
+}
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -508,17 +549,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-
-	AABB aabb{
-		.min{-0.5f,-0.5f,-0.5f},
-		.max{0.5f,0.5f,0.5f},
-	};
-	Segment segment{
-		.origin{-0.7f,0.3f,0.0f},
-		.diff{2.0f,-0.5f,0.0f}
+	Vector3 controlPoints[3] = {
+		{-0.8f,0.58f,1.0f},
+		{1.76f,1.0f,-0.3f},
+		{0.94f,-0.7f,2.3f}
 	};
 
-	bool isCollision{};
+	Sphere sphere[3];
+
+	sphere[0].center = controlPoints[0];
+	sphere[0].radius = 0.01f;
+
+	sphere[1].center = controlPoints[1];
+	sphere[1].radius = 0.01f;
+
+	sphere[2].center = controlPoints[2];
+	sphere[2].radius = 0.01f;
+
+
 
 	unsigned int color = 0xffffffff;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -541,42 +589,16 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
-		isCollision = IsCollision(aabb, segment);
-
-		if (isCollision) {
-			color = 0x00ffffff;
-		}
-		else {
-			color = 0xffffffff;
-		}
 
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
 
+		controlPoints[0] = Transform(controlPoints[0], worldViewProjectionMatrix);
+		controlPoints[1] = Transform(controlPoints[1], worldViewProjectionMatrix);
+		controlPoints[2] = Transform(controlPoints[2], worldViewProjectionMatrix);
 
-
-
-		aabb.min.x = (std::min)(aabb.min.x, aabb.max.x);
-		aabb.max.x = (std::max)(aabb.min.x, aabb.max.x);
-		aabb.min.y = (std::min)(aabb.min.y, aabb.max.y);
-		aabb.max.y = (std::max)(aabb.min.y, aabb.max.y);
-		aabb.min.z = (std::min)(aabb.min.z, aabb.max.z);
-		aabb.max.z = (std::max)(aabb.min.z, aabb.max.z);
-
-		Vector3 start = Transform(Transform(segment.origin, worldViewProjectionMatrix), viewportMatrix);
-		Vector3 end = Transform(Transform(Add(segment.origin, segment.diff), worldViewProjectionMatrix), viewportMatrix);
-		
-
-
-
-
-		ImGui::DragFloat3("aabb.max", &aabb.max.x, 0.01f);
-		ImGui::DragFloat3("aabb.min", &aabb.min.x, 0.01f);
-
-		ImGui::DragFloat3("sphere.center", &segment.origin.x, 0.1f);
-		ImGui::DragFloat3("sphere.radius", &segment.diff.x, 0.1f);
 		///
 		/// ↑更新処理ここまで
 		///
@@ -585,12 +607,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		Novice::DrawLine(int(start.x), int(start.y), int(end.x), int(end.y), WHITE);
-		// グリッドの描画
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
-		DrawAABB(aabb, worldViewProjectionMatrix, viewportMatrix, color);
 
+		DrawSphere(sphere[0], worldViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[1], worldViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[2], worldViewProjectionMatrix, viewportMatrix, color);
+
+		// Draw Bezier curve
+		DrawBezier(controlPoints[0], controlPoints[1], controlPoints[2], worldViewProjectionMatrix, viewportMatrix, color);
 
 
 
