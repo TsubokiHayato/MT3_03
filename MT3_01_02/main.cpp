@@ -527,12 +527,14 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 		bazierLine[1] = Transform(bezier1, Multiply(viewProjectionMatrix, viewportMatrix));
 
 
-		
+
 
 		Novice::DrawLine((int)bazierLine[0].x, (int)bazierLine[0].y, (int)bazierLine[1].x, (int)bazierLine[1].y, color);
 
 	}
 }
+
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -543,33 +545,48 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	Vector3 rotate = {};
-	Vector3 translate{};
 
-	Vector3 cameraPosition{ 0.0f,-.0f,-6.49f };
+	Vector3 translates[3] = {
+
+		{0.2f,1.0f,0.0f},
+		{0.4f,0.0f,0.0f},
+		{0.3f,0.0f,0.0f}
+	};
+
+	Vector3 rotates[3] = {
+		{0.0f,0.0f,-6.8f},
+		{0.0f,0.0f,-1.4f},
+		{0.0f,0.0f,0.0f}
+	};
+
+	Vector3 scales[3] = {
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f},
+		{1.0f,1.0f,1.0f}
+	};
+
+
+
+	Vector3 cameraPosition{ 0.0f,-0.0f,-6.49f };
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	Vector3 controlPoints[3] = {
-		{-0.8f,0.58f,1.0f},
-		{1.76f,1.0f,-0.3f},
-		{0.94f,-0.7f,2.3f}
-	};
 
 	Sphere sphere[3];
 
-	sphere[0].center = controlPoints[0];
-	sphere[0].radius = 0.01f;
+	sphere[0].center={};
+	sphere[0].radius = 0.1f;
 
-	sphere[1].center = controlPoints[1];
-	sphere[1].radius = 0.01f;
+	sphere[1].center = {};
+	sphere[1].radius = 0.1f;
 
-	sphere[2].center = controlPoints[2];
-	sphere[2].radius = 0.01f;
+	sphere[2].center = {};
+	sphere[2].radius = 0.1f;
 
 
 
 	unsigned int color = 0xffffffff;
+
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -583,31 +600,43 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		sphere[0].center = controlPoints[0];
-		sphere[0].radius = 0.01f;
-
-		sphere[1].center = controlPoints[1];
-		sphere[1].radius = 0.01f;
-
-		sphere[2].center = controlPoints[2];
-		sphere[2].radius = 0.01f;
-
 		 // 更新
-		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, rotate, translate);
+		Matrix4x4 worldMatrix;
+		
+
+		Matrix4x4 shoulderWorldMatrix= MakeAffineMatrix(scales[0], rotates[0], translates[0]);
+		Matrix4x4 elbowWorldMatrix= MakeAffineMatrix(scales[1], rotates[1], translates[1]);
+		Matrix4x4 handWorldMatrix= MakeAffineMatrix(scales[2], rotates[2], translates[2]);
+
+
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
 		Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
-		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
+
+
+		Matrix4x4 shoulderViewProjectionMatrix = Multiply(shoulderWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
+		Matrix4x4 elbowViewProjectionMatrix = Multiply(elbowWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
+		Matrix4x4 handViewProjectionMatrix = Multiply(handWorldMatrix, Multiply(cameraMatrix, projectionMatrix));
+
+
+		Matrix4x4 worldViewProjectionMatrix;
+		
+
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
+
+		sphere[0].center=translates[0];
+		sphere[0].radius = 0.1f;
+
+		sphere[1].center= translates[1];
+		sphere[1].radius = 0.1f;
+
+		sphere[2].center =translates[2];
+		sphere[2].radius = 0.1f;
 
 
 		ImGui::DragFloat3("cameraPos", &cameraPosition.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraScale", &cameraScale.x, 0.01f, -10.0f, 10.0f);
 		ImGui::DragFloat3("cameraRotate", &cameraRotate.x, 0.01f, -10.0f, 10.0f);
-
-		ImGui::DragFloat3("controlPoints[0]", &controlPoints[0].x, 0.01f, -10.0f, 10.0f);
-		ImGui::DragFloat3("controlPoints[1]", &controlPoints[1].x, 0.01f, -10.0f, 10.0f);
-		ImGui::DragFloat3("controlPoints[2]", &controlPoints[2].x, 0.01f, -10.0f, 10.0f);
 
 		///
 		/// ↑更新処理ここまで
@@ -620,12 +649,14 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 
 
-		DrawSphere(sphere[0], worldViewProjectionMatrix, viewportMatrix, color);
-		DrawSphere(sphere[1], worldViewProjectionMatrix, viewportMatrix, color);
-		DrawSphere(sphere[2], worldViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[0], shoulderViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[1], elbowViewProjectionMatrix, viewportMatrix, color);
+		DrawSphere(sphere[2], handViewProjectionMatrix, viewportMatrix, color);
 
-		// Draw Bezier curve
-		DrawBezier(controlPoints[0], controlPoints[1], controlPoints[2], worldViewProjectionMatrix, viewportMatrix, color);
+		Novice::DrawLine((int)translates[0].x, (int)translates[0].y, (int)translates[1].x, (int)translates[1].y, color);
+		Novice::DrawLine((int)translates[1].x, (int)translates[1].y, (int)translates[2].x, (int)translates[2].y, color);
+
+
 
 
 
