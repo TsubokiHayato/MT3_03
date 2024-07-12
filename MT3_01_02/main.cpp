@@ -639,6 +639,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
+		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
+		Novice::DrawLine()
 		DrawSphere(sphere,worldViewProjectionMatrix,viewportMatrix,ball.color );
 
 		///
