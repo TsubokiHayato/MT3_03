@@ -569,8 +569,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	Vector3 center = {};
-	float radius = 1.0f;
+	Vector3 circular_motion_center = {};
+	float circular_motion_radius = 0.8f;
 
 	Ball ball{};
 	ball.position = { 0.0f,0.0f,0.0f };
@@ -586,7 +586,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Sphere sphere{};
 
-
+	bool isStart = false;
+	ball.position.x = circular_motion_center.x + std::cos(angle) * circular_motion_radius;
+	ball.position.y = circular_motion_center.y + std::sin(angle) * circular_motion_radius;
+	ball.position.z = circular_motion_center.z;
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -601,21 +604,21 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 		/// 
-		ball.position.x = center.x + std::cos(angle) * radius;
-		ball.position.y = center.y + std::sin(angle) * radius;
-		ball.position.z = center.z;
+		
+		
+		if (isStart) {
 
+			ball.velocity.x = -circular_motion_radius * angularVelocity * std::sin(angle);
+			ball.velocity.y = circular_motion_radius * angularVelocity * std::cos(angle);
 
+			ball.acceleration.x = -std::pow(angularVelocity, 2.0f) * (circular_motion_radius * std::cos(angle));
+			ball.acceleration.y = -std::pow(angularVelocity, 2.0f) * (circular_motion_radius * std::sin(angle));
 
-		ball.velocity.x = -radius * angularVelocity * std::sin(angle);
-		ball.velocity.y = radius * angularVelocity * std::cos(angle);
+			angle += angularVelocity * deltaTime;
 
-		ball.acceleration.x = -std::pow(angularVelocity, 2.0f) * (radius * std::cos(angle));
-		ball.acceleration.y = -std::pow(angularVelocity, 2.0f) * (radius * std::sin(angle));
-
-		angle += angularVelocity * deltaTime;
-
-
+			ball.velocity += (ball.acceleration * deltaTime);
+			ball.position += ball.velocity * deltaTime;
+		}
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
 		// 更新
@@ -628,6 +631,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("camera");
 		ImGui::DragFloat3("camera.pos", &cameraPosition.x, 0.01f);
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
+		ImGui::End();
+
+		ImGui::Begin("ball");
+		ImGui::Checkbox("Start", &isStart);
 		ImGui::End();
 
 
