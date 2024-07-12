@@ -614,6 +614,15 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
 
+
+		// 更新
+		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, {0.0f, 0.0f, 0.0f}, { 0.0f, 0.0f, 0.0f });
+		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
+		Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
+		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
+		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
+
+
 		ImGui::Begin("camera");
 		ImGui::DragFloat3("camera.pos", &cameraPosition.x, 0.01f);
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
@@ -630,7 +639,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓描画処理ここから
 		///
 
-		DrawSphere(sphere, );
+		DrawSphere(sphere,worldViewProjectionMatrix,viewportMatrix,ball.color );
 
 		///
 		/// ↑描画処理ここまで
