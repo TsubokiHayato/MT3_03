@@ -569,24 +569,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	Spring spring{};
-	spring.anchor = {};
-	spring.naturalLength = 1.0f;
-	spring.stiffness = 100.0f;
-	spring.dampingCoefficient = 2.0f;
+	Vector3 center = {};
+	float radius = 1.0f;
 
 	Ball ball{};
-	ball.position = { 1.2f,0.0f,0.0f };
+	ball.position = { 0.0f,0.0f,0.0f };
 	ball.mass = 2.0f;
 	ball.radius = 0.05f;
 	ball.color = BLUE;
 
 	float deltaTime = 1.0f / 60.0f;
 
+	float angularVelocity = 3.14f;
+	float angle = 0.0f;
+
 
 	Sphere sphere{};
 
-	bool isSpringStart = false;
+
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -600,42 +600,24 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 		/// ↓更新処理ここから
 		///
+		/// 
+		ball.position.x = center.x + std::cos(angle) * radius;
+		ball.position.y = center.y + std::sin(angle) * radius;
+		ball.position.z = center.z;
 
-		if (isSpringStart) {
 
-			Vector3 diff = ball.position - spring.anchor;
-			float length = Length(diff);
-			if (length != 0.0f) {
-				Vector3 direction = Normalize(diff);
-				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-				Vector3 displacement = length * (ball.position - restPosition);
-				Vector3 restoringForce = -spring.stiffness * displacement;
-				//減衰定数を計算
-				Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
-				Vector3 force = restoringForce + dampingForce;
-				ball.acceleration = force / ball.mass;
-			}
-			ball.velocity += (ball.acceleration * deltaTime);
-			ball.position += ball.velocity * deltaTime;
 
-		}
-		else {
-			spring.anchor = {};
-			spring.naturalLength = 1.0f;
-			spring.stiffness = 100.0f;
-			spring.dampingCoefficient = 2.0f;
+		ball.velocity.x = -radius * angularVelocity * std::sin(angle);
+		ball.velocity.y = radius * angularVelocity * std::cos(angle);
 
-			ball.position = { 1.2f,0.0f,0.0f };
-			ball.mass = 2.0f;
-			
-		}
+		ball.acceleration.x = -std::pow(angularVelocity, 2.0f) * (radius * std::cos(angle));
+		ball.acceleration.y = -std::pow(angularVelocity, 2.0f) * (radius * std::sin(angle));
 
+		angle += angularVelocity * deltaTime;
 
 
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
-
-
 		// 更新
 		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
@@ -643,22 +625,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
-
-		Vector3 start =
-		{ Transform(Transform({0.0f,0.0f,0.0f},worldViewProjectionMatrix), viewportMatrix) };
-		Vector3 end =
-		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
-
-
-
 		ImGui::Begin("camera");
 		ImGui::DragFloat3("camera.pos", &cameraPosition.x, 0.01f);
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
 		ImGui::End();
 
-		ImGui::Begin("Spring");
-		ImGui::Checkbox("isSpringStart", &isSpringStart);
-		ImGui::End();
 
 
 
@@ -672,7 +643,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, 0xffffffff);
 		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
 
 		///
