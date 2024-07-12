@@ -570,13 +570,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
 	Spring spring{};
-	spring.anchor = {};
-	spring.naturalLength = 1.0f;
+	spring.anchor = { 0.0f,1.0f,0.0f };
+	spring.naturalLength = 0.7f;
 	spring.stiffness = 100.0f;
 	spring.dampingCoefficient = 2.0f;
 
 	Ball ball{};
-	ball.position = { 1.2f,0.0f,0.0f };
+	ball.position = { 0.8f,0.2f,0.0f };
 	ball.mass = 2.0f;
 	ball.radius = 0.05f;
 	ball.color = BLUE;
@@ -587,6 +587,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Sphere sphere{};
 
 	bool isSpringStart = false;
+	Vector3 kGravity{ -0.0f,-9.8f,0.0f };
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -601,36 +602,39 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		if (isSpringStart) {
 
+		if (isSpringStart) {
 			Vector3 diff = ball.position - spring.anchor;
 			float length = Length(diff);
 			if (length != 0.0f) {
 				Vector3 direction = Normalize(diff);
 				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-				Vector3 displacement = length * (ball.position - restPosition);
+				Vector3 displacement = ball.position - restPosition;  // Corrected this line
 				Vector3 restoringForce = -spring.stiffness * displacement;
-				//減衰定数を計算
+
+				// Damping force
 				Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
-				Vector3 force = restoringForce + dampingForce;
+
+				// Gravitational force
+				Vector3 gravitationalForce = ball.mass * kGravity;
+
+				// Total force
+				Vector3 force = restoringForce + dampingForce + gravitationalForce;
 				ball.acceleration = force / ball.mass;
 			}
+
 			ball.velocity += (ball.acceleration * deltaTime);
 			ball.position += ball.velocity * deltaTime;
-
 		}
 		else {
-			spring.anchor = {};
-			spring.naturalLength = 1.0f;
+			spring.anchor = { 0.0f,1.0f,0.0f };
+			spring.naturalLength = 0.7f;
 			spring.stiffness = 100.0f;
 			spring.dampingCoefficient = 2.0f;
 
-			ball.position = { 1.2f,0.0f,0.0f };
+			ball.position = { 0.8f,0.2f,0.0f };
 			ball.mass = 2.0f;
-			
 		}
-
-
 
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
@@ -645,7 +649,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		Vector3 start =
-		{ Transform(Transform({0.0f,0.0f,0.0f},worldViewProjectionMatrix), viewportMatrix) };
+		{ Transform(Transform(spring.anchor,worldViewProjectionMatrix), viewportMatrix) };
 		Vector3 end =
 		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
 
@@ -659,8 +663,6 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::Begin("Spring");
 		ImGui::Checkbox("isSpringStart", &isSpringStart);
 		ImGui::End();
-
-
 
 
 		///
