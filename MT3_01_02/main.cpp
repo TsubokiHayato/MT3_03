@@ -74,6 +74,7 @@ struct Spring {
 	Vector3 anchor;//アンカー。固定された端の位置
 	float naturalLength;//自然長
 	float stiffness;//剛性。ばね定数k
+	float dampingCoefficient;//減衰定数
 };
 
 struct Ball {
@@ -572,6 +573,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	spring.anchor = {};
 	spring.naturalLength = 1.0f;
 	spring.stiffness = 100.0f;
+	spring.dampingCoefficient = 2.0f;
 
 	Ball ball{};
 	ball.position = { 1.2f,0.0f,0.0f };
@@ -583,6 +585,8 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	Sphere sphere{};
+
+	bool isSpringStart = false;
 
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
@@ -597,17 +601,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		Vector3 diff = ball.position - spring.anchor;
-		float length = Length(diff);
-		if (length != 0.0f) {
-			Vector3 direction = Normalize(diff);
-			Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
-			Vector3 displacement = length * (ball.position - restPosition);
-			Vector3 restoringForce = -spring.stiffness * displacement;
-			Vector3 force = restoringForce;
-			ball.acceleration = force / ball.mass;
-		}
+		if (isSpringStart) {
 
+			Vector3 diff = ball.position - spring.anchor;
+			float length = Length(diff);
+			if (length != 0.0f) {
+				Vector3 direction = Normalize(diff);
+				Vector3 restPosition = spring.anchor + direction * spring.naturalLength;
+				Vector3 displacement = length * (ball.position - restPosition);
+				Vector3 restoringForce = -spring.stiffness * displacement;
+				//減衰定数を計算
+				Vector3 dampingForce = -spring.dampingCoefficient * ball.velocity;
+				Vector3 force = restoringForce + dampingForce;
+				ball.acceleration = force / ball.mass;
+			}
+		}
+		else
+		{
+			ball.acceleration = {};
+		}
 		ball.velocity += (ball.acceleration * deltaTime);
 		ball.position += ball.velocity * deltaTime;
 
@@ -623,9 +635,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		Matrix4x4 viewportMatrix = MakeViewportMatrix(0, 0, 1280.0f, 720.0f, 0.0f, 1.0f);
 
 
+		Vector3 start =
+		{ Transform(Transform({0.0f,0.0f,0.0f},worldViewProjectionMatrix), viewportMatrix)};
+		Vector3 end =
+		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
+
+
+
 		ImGui::Begin("camera");
 		ImGui::DragFloat3("camera.pos", &cameraPosition.x, 0.01f);
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
+		ImGui::End();
+
+		ImGui::Begin("Spring");
+		ImGui::Checkbox("isSpringStart", &isSpringStart);
 		ImGui::End();
 
 
@@ -640,7 +663,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
-		Novice::DrawLine()
+		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, 0xffffffff);
 		DrawSphere(sphere,worldViewProjectionMatrix,viewportMatrix,ball.color );
 
 		///
