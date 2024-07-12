@@ -562,7 +562,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	char keys[256] = { 0 };
 	char preKeys[256] = { 0 };
 
-	
+
 
 
 	Vector3 cameraPosition{ 0.0f,-0.0f,-6.49f };
@@ -615,20 +615,29 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 				Vector3 force = restoringForce + dampingForce;
 				ball.acceleration = force / ball.mass;
 			}
+			ball.velocity += (ball.acceleration * deltaTime);
+			ball.position += ball.velocity * deltaTime;
+
 		}
-		else
-		{
-			ball.acceleration = {};
+		else {
+			spring.anchor = {};
+			spring.naturalLength = 1.0f;
+			spring.stiffness = 100.0f;
+			spring.dampingCoefficient = 2.0f;
+
+			ball.position = { 1.2f,0.0f,0.0f };
+			ball.mass = 2.0f;
+			
 		}
-		ball.velocity += (ball.acceleration * deltaTime);
-		ball.position += ball.velocity * deltaTime;
+
+
 
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
 
 
 		// 更新
-		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, {0.0f, 0.0f, 0.0f}, { 0.0f, 0.0f, 0.0f });
+		Matrix4x4 worldMatrix = MakeAffineMatrix({ 1.0f,1.0f,1.0f }, { 0.0f, 0.0f, 0.0f }, { 0.0f, 0.0f, 0.0f });
 		Matrix4x4 cameraMatrix = MakeAffineMatrix(cameraScale, cameraRotate, cameraPosition);
 		Matrix4x4 projectionMatrix = MakePerspectiveMatrix(0.45f, 1280.0f / 720.0f, 0.1f, 100.0f);
 		Matrix4x4 worldViewProjectionMatrix = Multiply(worldMatrix, Multiply(cameraMatrix, projectionMatrix));
@@ -636,7 +645,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		Vector3 start =
-		{ Transform(Transform({0.0f,0.0f,0.0f},worldViewProjectionMatrix), viewportMatrix)};
+		{ Transform(Transform({0.0f,0.0f,0.0f},worldViewProjectionMatrix), viewportMatrix) };
 		Vector3 end =
 		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
 
@@ -664,7 +673,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
 		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, 0xffffffff);
-		DrawSphere(sphere,worldViewProjectionMatrix,viewportMatrix,ball.color );
+		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
 
 		///
 		/// ↑描画処理ここまで
