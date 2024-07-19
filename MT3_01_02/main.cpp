@@ -106,6 +106,19 @@ struct ConicalPendulum {
 
 
 
+bool IsCollision(const Sphere& sphere, const Plane& plane) {
+
+	float k = (plane.normal.x * sphere.center.x + plane.normal.y * sphere.center.y + plane.normal.z * sphere.center.z) - plane.distance;
+	k = fabs(k);
+
+	if (k <= sphere.radius) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
 //直線と平面の当たり判定
 bool IsCollision(const Line& line, const Plane& plane) {
 	float dot = Dot(plane.normal, line.diff);
@@ -580,6 +593,20 @@ Vector3 Reflect(const Vector3& input, const Vector3& normal) {
 	return reflect;
 }
 
+
+
+float clamp(float t, float max, float min) {
+	if (t < min) {
+		return min;
+	}
+	else if (t > max) {
+		return max;
+	}
+	else {
+		return t;
+	}
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -613,7 +640,10 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 	Sphere sphere{};
 
+	float e = 0.75;
 
+ 
+	
 
 	//bool isStart = false;
 	// ウィンドウの×ボタンが押されるまでループ
@@ -632,8 +662,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ball.velocity += ball.acceleration * deltaTime;
 		ball.position += ball.velocity * deltaTime;
 
-		if (IsCollision(plane, sphere)) {
+		if (IsCollision(sphere,plane)) {
+			Vector3 reflected = Reflect(ball.velocity, plane.normal);
+			Vector3 projectToNormal = Project(reflected, plane.normal);
+			Vector3 movingDirection = reflected - projectToNormal;
 
+			ball.velocity = projectToNormal * e + movingDirection;
 		}
 
 		sphere.center = ball.position;
@@ -655,7 +689,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 		ImGui::End();
 
-		Vector3 cross = Cross(Vector3( 3.0f,1.0f,-4.0f ), Vector3( 2,-5,3 ));
+		
 		///
 		/// ↑更新処理ここまで
 		///
@@ -669,9 +703,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
 
 		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
-		Novice::ScreenPrintf(0, 0, "%f", cross.x);
-		Novice::ScreenPrintf(0, 20, "%f", cross.y);
-		Novice::ScreenPrintf(0, 40, "%f", cross.z);
+		
 		///
 		/// ↑描画処理ここまで
 		///
