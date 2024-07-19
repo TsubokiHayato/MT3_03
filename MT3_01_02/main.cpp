@@ -101,7 +101,7 @@ struct ConicalPendulum {
 	float halfApexAngle;
 	float angle;
 	float angularVelocity;
-	
+
 };
 
 
@@ -572,6 +572,14 @@ void DrawBezier(const Vector3& controlPoint0, const Vector3& controlPoint1, cons
 }
 
 
+Vector3 Reflect(const Vector3& input, const Vector3& normal) {
+	Vector3 reflect = {};
+
+	reflect = input - 2 * (Dot(input,normal)) * normal;
+
+	return reflect;
+}
+
 // Windowsアプリでのエントリーポイント(main関数)
 int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
@@ -589,28 +597,25 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	
+	Plane plane;
+	plane.normal = Normalize({ -0.2f, 0.9f, -0.3f});
+	plane.distance = 0.0f;
 
 	Ball ball{};
-	ball.position = { 1.2f,0.0f,0.0f };
+	ball.position = { 0.8f,1.2f,0.3f };
+	ball.acceleration = { 0.0f,-9.8f,0.0f };
 	ball.mass = 2.0f;
 	ball.radius = 0.05f;
-	ball.color = BLUE;
+	ball.color = WHITE;
 
 	float deltaTime = 1.0f / 60.0f;
 
 
 	Sphere sphere{};
 
-	ConicalPendulum conicalPendulum;
-	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
-	conicalPendulum.length = 0.8f;
-	conicalPendulum.halfApexAngle = 0.7f;
-	conicalPendulum.angle = 0.0f;
-	conicalPendulum.angularVelocity = 0.0f;
 
-	
-	bool isStart = false;
+
+	//bool isStart = false;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -624,29 +629,12 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		
-		if (isStart) {
-			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
-			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+		ball.velocity += ball.acceleration * deltaTime;
+		ball.position += ball.velocity * deltaTime;
 
+		if (IsCollision(plane, sphere)) {
 
-			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-
-			ball.position.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
-			ball.position.y = conicalPendulum.anchor.y - height;
-			ball.position.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
 		}
-	
-
-
-
-
-
-
-
-
-
 
 		sphere.center = ball.position;
 		sphere.radius = ball.radius;
@@ -661,26 +649,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 
-		Vector3 start =
-		{ Transform(Transform(conicalPendulum.anchor,worldViewProjectionMatrix), viewportMatrix) };
-		Vector3 end =
-		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
-
-
-
 		ImGui::Begin("camera");
 		ImGui::DragFloat3("camera.pos", &cameraPosition.x, 0.01f);
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
+
 		ImGui::End();
 
-		ImGui::Begin("conicalPendulum");
-		ImGui::Checkbox("isStart", &isStart);
-		ImGui::DragFloat3("length", &conicalPendulum.length, 0.01f);
-		ImGui::DragFloat3("halfApexAngle", &conicalPendulum.halfApexAngle, 0.01f);
-		ImGui::End();
-
-
-
+		Vector3 cross = Cross(Vector3( 3.0f,1.0f,-4.0f ), Vector3( 2,-5,3 ));
 		///
 		/// ↑更新処理ここまで
 		///
@@ -690,9 +665,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		///
 
 		DrawGrid(worldViewProjectionMatrix, viewportMatrix);
-		Novice::DrawLine((int)start.x, (int)start.y, (int)end.x, (int)end.y, 0xffffffff);
+
 		DrawSphere(sphere, worldViewProjectionMatrix, viewportMatrix, ball.color);
 
+		DrawPlane(plane, worldViewProjectionMatrix, viewportMatrix, WHITE);
+		Novice::ScreenPrintf(0, 0, "%f", cross.x);
+		Novice::ScreenPrintf(0, 20, "%f", cross.y);
+		Novice::ScreenPrintf(0, 40, "%f", cross.z);
 		///
 		/// ↑描画処理ここまで
 		///
