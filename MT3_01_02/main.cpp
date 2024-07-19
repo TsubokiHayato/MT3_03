@@ -610,7 +610,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	conicalPendulum.angularVelocity = 0.0f;
 
 	
-
+	bool isStart = false;
 	// ウィンドウの×ボタンが押されるまでループ
 	while (Novice::ProcessMessage() == 0) {
 		// フレームの開始
@@ -624,18 +624,20 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
+		
+		if (isStart) {
+			conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
+			conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
 
-		conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
-		conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
 
+			float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+			float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
 
-		float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-		float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
-
-		ball.position.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
-		ball.position.y = conicalPendulum.anchor.y - height;
-		ball.position.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
-
+			ball.position.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
+			ball.position.y = conicalPendulum.anchor.y - height;
+			ball.position.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
+		}
+	
 
 
 
@@ -671,10 +673,11 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		ImGui::DragFloat3("camera.rotate", &cameraRotate.x, 0.01f);
 		ImGui::End();
 
-		/*ImGui::Begin("Spring");
-		ImGui::Checkbox("isSpringStart", &isSpringStart);
-		ImGui::End();*/
-
+		ImGui::Begin("conicalPendulum");
+		ImGui::Checkbox("isStart", &isStart);
+		ImGui::DragFloat3("length", &conicalPendulum.length, 0.01f);
+		ImGui::DragFloat3("halfApexAngle", &conicalPendulum.halfApexAngle, 0.01f);
+		ImGui::End();
 
 
 
