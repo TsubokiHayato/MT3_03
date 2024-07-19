@@ -95,6 +95,16 @@ struct Pendulum {
 	float angularAcceleration;
 };
 
+struct ConicalPendulum {
+	Vector3 anchor;//アンカー。固定された端の位置
+	float length;
+	float halfApexAngle;
+	float angle;
+	float angularVelocity;
+	
+};
+
+
 
 //直線と平面の当たり判定
 bool IsCollision(const Line& line, const Plane& plane) {
@@ -579,12 +589,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 	Vector3 cameraScale{ 1.0f, 1.0f, 1.0f };
 	Vector3 cameraRotate{ 2.6f,0.0f,0.0f };
 
-	Pendulum pendulum;
-	pendulum.anchor = { 0.0f,1.0f,0.0f };
-	pendulum.length = 0.8f;
-	pendulum.angle = 0.7f;
-	pendulum.angularVelocity = 0.0f;
-	pendulum.angularAcceleration = 0.0f;
+	
 
 	Ball ball{};
 	ball.position = { 1.2f,0.0f,0.0f };
@@ -596,6 +601,13 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 	Sphere sphere{};
+
+	ConicalPendulum conicalPendulum;
+	conicalPendulum.anchor = { 0.0f,1.0f,0.0f };
+	conicalPendulum.length = 0.8f;
+	conicalPendulum.halfApexAngle = 0.7f;
+	conicalPendulum.angle = 0.0f;
+	conicalPendulum.angularVelocity = 0.0f;
 
 	
 
@@ -612,14 +624,26 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 		/// ↓更新処理ここから
 		///
 
-		pendulum.angularAcceleration =
-			-(9.8f / pendulum.length) * std::sin(pendulum.angle);
-		pendulum.angularVelocity += pendulum.angularAcceleration * deltaTime;
-		pendulum.angle += pendulum.angularVelocity * deltaTime;
 
-		ball.position.x = pendulum.anchor.x + std::sin(pendulum.angle) * pendulum.length;
-		ball.position.y = pendulum.anchor.y - std::cos(pendulum.angle) * pendulum.length;
-		ball.position.z = pendulum.anchor.z;
+		conicalPendulum.angularVelocity = std::sqrt(9.8f / (conicalPendulum.length * std::cos(conicalPendulum.halfApexAngle)));
+		conicalPendulum.angle += conicalPendulum.angularVelocity * deltaTime;
+
+
+		float radius = std::sin(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+		float height = std::cos(conicalPendulum.halfApexAngle) * conicalPendulum.length;
+
+		ball.position.x = conicalPendulum.anchor.x + std::cos(conicalPendulum.angle) * radius;
+		ball.position.y = conicalPendulum.anchor.y - height;
+		ball.position.z = conicalPendulum.anchor.z - std::sin(conicalPendulum.angle) * radius;
+
+
+
+
+
+
+
+
+
 
 
 		sphere.center = ball.position;
@@ -636,7 +660,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int) {
 
 
 		Vector3 start =
-		{ Transform(Transform(pendulum.anchor,worldViewProjectionMatrix), viewportMatrix) };
+		{ Transform(Transform(conicalPendulum.anchor,worldViewProjectionMatrix), viewportMatrix) };
 		Vector3 end =
 		{ Transform(Transform(sphere.center,worldViewProjectionMatrix), viewportMatrix) };
 
