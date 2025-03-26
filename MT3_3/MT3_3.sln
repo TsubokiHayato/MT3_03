@@ -1,0 +1,30 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.9.34728.123
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MT3_3", "MT3_3.vcxproj", "{93F2AA35-8784-4C9F-A01E-52B4C83D4DF6}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "ソリューション項目", "ソリューション項目", "{47786805-D84D-497B-835F-B0E6D4EDDA8D}"
+	ProjectSection(SolutionItems) = preProject
+		Matrix.h = Matrix.h
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{93F2AA35-8784-4C9F-A01E-52B4C83D4DF6}.Debug|x64.ActiveCfg = Debug|x64
+		{93F2AA35-8784-4C9F-A01E-52B4C83D4DF6}.Debug|x64.Build.0 = Debug|x64
+		{93F2AA35-8784-4C9F-A01E-52B4C83D4DF6}.Release|x64.ActiveCfg = Release|x64
+		{93F2AA35-8784-4C9F-A01E-52B4C83D4DF6}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {DA4A2120-6F6C-4091-9CC9-CE217E314444}
+	EndGlobalSection
+EndGlobal
